@@ -5,7 +5,10 @@ export default {
   mixins: [ TimeoutMixin ],
 
   props: {
-    value: Boolean
+    value: {
+      type: Boolean,
+      default: void 0
+    }
   },
 
   data () {
@@ -38,10 +41,12 @@ export default {
         this.$emit('input', true)
         this.payload = evt
         this.$nextTick(() => {
-          this.payload = void 0
+          if (this.payload === evt) {
+            this.payload = void 0
+          }
         })
       }
-      else {
+      if (this.value === void 0 || this.$listeners.input === void 0 || isSSR === true) {
         this.__processShow(evt)
       }
     },
@@ -50,6 +55,10 @@ export default {
       if (this.showing === true) {
         return
       }
+
+      // need to call it before setting showing to true
+      // in order to not ruin the animation
+      this.__preparePortal !== void 0 && this.__preparePortal()
 
       this.showing = true
 
@@ -74,10 +83,12 @@ export default {
         this.$emit('input', false)
         this.payload = evt
         this.$nextTick(() => {
-          this.payload = void 0
+          if (this.payload === evt) {
+            this.payload = void 0
+          }
         })
       }
-      else {
+      if (this.value === void 0 || this.$listeners.input === void 0 || isSSR === true) {
         this.__processHide(evt)
       }
     },
@@ -105,7 +116,7 @@ export default {
       if (this.disable === true && val === true) {
         this.$listeners.input !== void 0 && this.$emit('input', false)
       }
-      else if (val !== this.showing) {
+      else if ((val === true) !== this.showing) {
         this[`__process${val === true ? 'Show' : 'Hide'}`](this.payload)
       }
     }

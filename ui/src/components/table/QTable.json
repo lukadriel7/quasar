@@ -17,6 +17,57 @@
       "category": "general"
     },
 
+    "virtual-scroll": {
+      "type": "Boolean",
+      "desc": "Display data using QVirtualScroll (for non-grid mode only)",
+      "category": "virtual-scroll",
+      "addedIn": "v1.2.0"
+    },
+
+    "virtual-scroll-slice-size": {
+      "type": "Number",
+      "desc": "Number of rows to render in the virtual list",
+      "default": "30",
+      "examples": [
+        ":virtual-scroll-slice-size=\"60\""
+      ],
+      "category": "virtual-scroll",
+      "addedIn": "v1.2.0"
+    },
+
+    "virtual-scroll-item-size": {
+      "type": "Number",
+      "desc": "Default size in pixels of a row; This value is used for rendering the initial table; Try to use a value close to the minimum size of a row",
+      "default": "48 (24 if dense)",
+      "examples": [
+        ":virtual-scroll-item-size=\"48\""
+      ],
+      "category": "virtual-scroll",
+      "addedIn": "v1.2.0"
+    },
+
+    "virtual-scroll-sticky-size-start": {
+      "type": "Number",
+      "desc": "Size in pixels of the sticky header (if using one); A correct value will improve scroll precision",
+      "default": "0",
+      "examples": [
+        ":virtual-scroll-sticky-size-start=\"48\""
+      ],
+      "category": "virtual-scroll",
+      "addedIn": "v1.2.0"
+    },
+
+    "virtual-scroll-sticky-size-end": {
+      "type": "Number",
+      "desc": "Size in pixels of the sticky footer part (if using one); A correct value will improve scroll precision",
+      "default": "0",
+      "examples": [
+        ":virtual-scroll-sticky-size-end=\"48\""
+      ],
+      "category": "virtual-scroll",
+      "addedIn": "v1.2.0"
+    },
+
     "color": {
       "extends": "color",
       "default": "grey-8"
@@ -25,7 +76,13 @@
     "grid": {
       "type": "Boolean",
       "desc": "Display data as a grid instead of the default table",
-      "category": "style"
+      "category": "behavior"
+    },
+
+    "grid-header": {
+      "type": "Boolean",
+      "desc": "Display header for grid-mode also",
+      "category": "behavior|content"
     },
 
     "dense": {
@@ -533,6 +590,108 @@
       }
     },
 
+    "header": {
+      "desc": "Slot to define how header looks like; Suggestion: QTr + QTh",
+      "scope": {
+        "cols": {
+          "type": "Object",
+          "desc": "Column definitions",
+          "__exemption": [ "examples" ]
+        },
+        "colsMap": {
+          "type": "Object",
+          "desc": "Column mapping (key is column name, value is column object)",
+          "__exemption": [ "examples" ]
+        },
+        "sort": {
+          "type": "Function",
+          "desc": "Trigger a table sort",
+          "params": {
+            "col": {
+              "type": [ "String", "Object" ],
+              "desc": "Column name or column definition object",
+              "required": true,
+              "examples": [ "calories" ]
+            }
+          },
+          "returns": null
+        },
+        "header": {
+          "type": "Boolean",
+          "desc": "Internal prop passed down to QTh (if used); Always 'true'"
+        }
+      }
+    },
+
+    "header-cell": {
+      "desc": "Slot to define how each header cell looks like; Suggestion: QTh",
+      "scope": {
+        "col": {
+          "type": "Object",
+          "desc": "Column definition associated to header cell",
+          "__exemption": [ "examples" ]
+        },
+        "cols": {
+          "type": "Object",
+          "desc": "Column definitions",
+          "__exemption": [ "examples" ]
+        },
+        "colsMap": {
+          "type": "Object",
+          "desc": "Column mapping (key is column name, value is column object)",
+          "__exemption": [ "examples" ]
+        },
+        "sort": {
+          "type": "Function",
+          "desc": "Trigger a table sort",
+          "params": {
+            "col": {
+              "type": [ "String", "Object" ],
+              "desc": "Column name or column definition object",
+              "required": true,
+              "examples": [ "calories" ]
+            }
+          },
+          "returns": null
+        }
+      }
+    },
+
+    "header-cell-[name]": {
+      "desc": "Slot to define how a specific header cell looks like; replace '[name]' with column name (from columns definition object)",
+      "scope": {
+        "col": {
+          "type": "Object",
+          "desc": "Column definition associated to header cell",
+          "__exemption": [ "examples" ]
+        },
+        "cols": {
+          "type": "Object",
+          "desc": "Column definitions",
+          "__exemption": [ "examples" ]
+        },
+        "colsMap": {
+          "type": "Object",
+          "desc": "Column mapping (key is column name, value is column object)",
+          "__exemption": [ "examples" ]
+        },
+        "sort": {
+          "type": "Function",
+          "desc": "Trigger a table sort",
+          "params": {
+            "col": {
+              "type": [ "String", "Object" ],
+              "desc": "Column name or column definition object",
+              "required": true,
+              "examples": [ "calories" ]
+            }
+          },
+          "returns": null
+        }
+      },
+      "addedIn": "v1.1.1"
+    },
+
     "top-row": {
       "desc": "Slot to define how top extra row looks like",
       "scope": {
@@ -682,73 +841,6 @@
           "type": "Function",
           "desc": "Toggles fullscreen mode",
           "params": null,
-          "returns": null
-        }
-      }
-    },
-
-    "header": {
-      "desc": "Slot to define how header looks like; Suggestion: QTr + QTh",
-      "scope": {
-        "cols": {
-          "type": "Object",
-          "desc": "Column definitions",
-          "__exemption": [ "examples" ]
-        },
-        "colsMap": {
-          "type": "Object",
-          "desc": "Column mapping (key is column name, value is column object)",
-          "__exemption": [ "examples" ]
-        },
-        "sort": {
-          "type": "Function",
-          "desc": "Trigger a table sort",
-          "params": {
-            "col": {
-              "type": [ "String", "Object" ],
-              "desc": "Column name or column definition object",
-              "required": true,
-              "examples": [ "calories" ]
-            }
-          },
-          "returns": null
-        },
-        "header": {
-          "type": "Boolean",
-          "desc": "Internal prop passed down to QTh (if used); Always 'true'"
-        }
-      }
-    },
-
-    "header-cell": {
-      "desc": "Slot to define how each header cell looks like; Suggestion: QTh",
-      "scope": {
-        "col": {
-          "type": "Object",
-          "desc": "Column definition associated to header cell",
-          "__exemption": [ "examples" ]
-        },
-        "cols": {
-          "type": "Object",
-          "desc": "Column definitions",
-          "__exemption": [ "examples" ]
-        },
-        "colsMap": {
-          "type": "Object",
-          "desc": "Column mapping (key is column name, value is column object)",
-          "__exemption": [ "examples" ]
-        },
-        "sort": {
-          "type": "Function",
-          "desc": "Trigger a table sort",
-          "params": {
-            "col": {
-              "type": [ "String", "Object" ],
-              "desc": "Column name or column definition object",
-              "required": true,
-              "examples": [ "calories" ]
-            }
-          },
           "returns": null
         }
       }
@@ -948,6 +1040,22 @@
           "desc": "Toggles fullscreen mode",
           "params": null,
           "returns": null
+        }
+      }
+    },
+
+    "no-data": {
+      "desc": "Slot to define how the bottom will look like when is nothing to display",
+      "scope": {
+        "message": {
+          "type": "String",
+          "desc": "The suggested message",
+          "examples": [ "No data available" ]
+        },
+        "icon": {
+          "type": "String",
+          "desc": "The suggested icon name (following Quasar convention)",
+          "examples": [ "warning" ]
         }
       }
     }
@@ -1293,6 +1401,10 @@
 
     "toggleFullscreen": {
       "desc": "Toggles fullscreen mode"
+    },
+
+    "resetVirtualScroll": {
+      "desc": "Resets the virtual scroll (if using it) computations; Needed for custom edge-cases"
     }
   }
 }
