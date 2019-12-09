@@ -1,6 +1,5 @@
 import { getEventPath, listenOpts, stopAndPrevent } from '../utils/event.js'
 import { hasScrollbar, getScrollPosition, getHorizontalScrollPosition } from '../utils/scroll.js'
-import Platform from '../plugins/Platform.js'
 
 let
   registered = 0,
@@ -50,11 +49,13 @@ function shouldPreventScroll (e) {
 
 function onAppleScroll (e) {
   if (e.target === document) {
-    document.scrollingElement.scrollTop = 0
+    // required, otherwise iOS blocks further scrolling
+    // until the mobile scrollbar dissapears
+    document.scrollingElement.scrollTop = document.scrollingElement.scrollTop // eslint-disable-line
   }
 }
 
-function apply (action) {
+function apply (action, is) {
   const body = document.body
 
   if (action === 'add') {
@@ -71,27 +72,29 @@ function apply (action) {
       body.classList.add('q-body--force-scrollbar')
     }
 
-    Platform.is.ios === true && window.addEventListener('scroll', onAppleScroll, listenOpts.passiveCapture)
+    body.classList.add('q-body--prevent-scroll')
+    is.ios === true && window.addEventListener('scroll', onAppleScroll, listenOpts.passiveCapture)
   }
 
-  body.classList[action]('q-body--prevent-scroll')
-
-  if (Platform.is.desktop === true && Platform.is.mac === true) {
+  if (is.desktop === true && is.mac === true) {
     // ref. https://developers.google.com/web/updates/2017/01/scrolling-intervention
     window[`${action}EventListener`]('wheel', onWheel, listenOpts.notPassive)
   }
 
   if (action === 'remove') {
-    Platform.is.ios === true && window.removeEventListener('scroll', onAppleScroll, listenOpts.passiveCapture)
+    is.ios === true && window.removeEventListener('scroll', onAppleScroll, listenOpts.passiveCapture)
 
+    body.classList.remove('q-body--prevent-scroll')
     body.classList.remove('q-body--force-scrollbar')
+
     body.style.left = bodyLeft
     body.style.top = bodyTop
+
     window.scrollTo(scrollPositionX, scrollPositionY)
   }
 }
 
-function prevent (state) {
+export function preventScroll (state, is) {
   let action = 'add'
 
   if (state === true) {
@@ -120,18 +123,18 @@ function prevent (state) {
 
     action = 'remove'
 
-    if (Platform.is.ios === true && Platform.is.nativeMobile === true) {
+    if (is.ios === true && is.nativeMobile === true) {
       clearTimeout(closeTimer)
 
       closeTimer = setTimeout(() => {
-        apply(action)
+        apply(action, is)
         closeTimer = void 0
       }, 100)
       return
     }
   }
 
-  apply(action)
+  apply(action, is)
 }
 
 export default {
@@ -142,7 +145,7 @@ export default {
         (this.preventedScroll !== void 0 || state === true)
       ) {
         this.preventedScroll = state
-        prevent(state)
+        preventScroll(state, this.$q.platform.is)
       }
     }
   }

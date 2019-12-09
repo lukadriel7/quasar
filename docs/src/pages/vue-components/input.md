@@ -114,6 +114,12 @@ When you need QInput to grow along with its content, then use the `autogrow` pro
 
 <doc-example title="Prefix and suffix" file="QInput/PrefixSuffix" />
 
+### Slots with QBtn type "submit"
+
+::: warning
+When placing a QBtn with type "submit" in one of the "before", "after", "prepend", or "append" slots of a QField, QInput or QSelect, you should also add a `@click` listener on the QBtn in question. This listener should call the method that submits your form. All "click" events in such slots are not propagated to their parent elements.
+:::
+
 ### Debouncing model
 
 The role of debouncing is for times when you watch the model and do expensive operations on it. So you want to first let user type out before triggering the model update, rather than updating the model on each keystroke.
@@ -157,6 +163,77 @@ The `unmasked-value` is useful if for example you want to force the user type a 
 The `reverse-fill-mask` is useful if you want to force the user to fill the mask from the end and allow non-fixed length of input:
 
 <doc-example title="Filling the mask in reverse" file="QInput/MaskFillReverse" />
+
+### Using third party mask processors
+
+You can easily use any third party mask processor by doing a few small adjustments to your QInput.
+
+Starting from a QInput like this:
+
+```html
+<q-input
+  filled
+  v-model="price"
+  label="Price with 2 decimals"
+  mask="#.##"
+  fill-mask="#"
+  reverse-fill-mask
+  hint="Mask: #.00"
+  input-class="text-right"
+/>
+```
+
+You can use v-money directive:
+
+```html
+<q-field
+  filled
+  v-model="price"
+  label="Price with v-money directive"
+  hint="Mask: $ #,###.00 #"
+>
+  <template v-slot:control="{ id, floatingLabel, value, emitValue }">
+    <input :id="id" class="q-field__native text-right" :value="value" @change="e => emitValue(e.target.value)" v-money="moneyFormatForDirective" v-show="floatingLabel">
+  </template>
+</q-field>
+```
+
+```javascript
+moneyFormatForDirective: {
+  decimal: '.',
+  thousands: ',',
+  prefix: '$ ',
+  suffix: ' #',
+  precision: 2,
+  masked: false /* doesn't work with directive */
+}
+```
+
+Or you can use money component:
+
+```html
+<q-field
+  filled
+  v-model="price"
+  label="Price with v-money component"
+  hint="Mask: $ #,###.00 #"
+>
+  <template v-slot:control="{ id, floatingLabel, value, emitValue }">
+    <money :id="id" class="q-field__native text-right" :value="value" @input="emitValue" v-bind="moneyFormatForComponent" v-show="floatingLabel" />
+  </template>
+</q-field>
+```
+
+```javascript
+moneyFormatForComponent: {
+  decimal: '.',
+  thousands: ',',
+  prefix: '$ ',
+  suffix: ' #',
+  precision: 2,
+  masked: true
+}
+```
 
 ## Validation
 

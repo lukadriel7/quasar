@@ -39,7 +39,7 @@ Read more on `register-service-worker.js` and how to interact with the Service W
 :::
 
 ## Quasar.conf.js
-This is the place where you can configure Workbox's behavior and also tweak your manifest.json.
+This is the place where you can configure Workbox behavior and also tweak your manifest.json.
 
 ```js
 pwa: {
@@ -107,7 +107,7 @@ When to use InjectManifest:
 * You want more control over your service worker.
 * You want to precache files.
 * You have more complex needs in terms of routing.
-* You would like to use your service worker with other API's (e.g. Web Push).
+* You would like to use your service worker with other APIs (e.g. Web Push).
 
 When NOT to use InjectManifest:
 * You want the easiest path to adding a service worker to your site.
@@ -178,7 +178,7 @@ Do not run [Lighthouse](https://developers.google.com/web/tools/lighthouse/) on 
 :::
 
 ## Reload & Update Workbox
-For those who want to reload the page when the service worker is updated **and are using the default GenerateSW workbox mode**, you may as well want to make it active at once. Update the workboxOptions config in quasar.conf.js as follows:
+For those who don't want to manually reload the page when the service worker is updated **and are using the default GenerateSW workbox mode**, you can make it active at once. Update the workboxOptions config in quasar.conf.js as follows:
 
 ```js
 // quasar.conf.js

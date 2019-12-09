@@ -50,6 +50,82 @@
       </div>
 
       <div class="row flex-center q-my-md q-gutter-md">
+        <router-link
+          to="/components/button-functional?q=0&a=0"
+          v-slot="{ href, route, navigate, isActive, isExactActive }"
+        >
+          <q-btn
+            :flat="isActive !== true"
+            :outline="isActive === true && isExactActive !== true"
+            color="primary"
+            size="lg"
+            no-caps
+            :label="`To '${route.fullPath} - routerLink slot: isActive=${isActive}, isExactActive=${isExactActive}, href=${href}`"
+            :to="href"
+            @click="onClick"
+          />
+        </router-link>
+        <router-link
+          to="/components/button-functional?q=1"
+          v-slot="{ href, route, navigate, isActive, isExactActive }"
+        >
+          <q-btn
+            :flat="isActive !== true"
+            :outline="isActive === true && isExactActive !== true"
+            color="primary"
+            size="lg"
+            no-caps
+            :label="`To '${route.fullPath} - routerLink slot: isActive=${isActive}, isExactActive=${isExactActive}, href=${href}`"
+            :to="href"
+            @click="onClick"
+          />
+        </router-link>
+        <router-link
+          to="/components/button-functional?q=1&a=1"
+          v-slot="{ href, route, navigate, isActive, isExactActive }"
+        >
+          <q-btn
+            :flat="isActive !== true"
+            :outline="isActive === true && isExactActive !== true"
+            color="primary"
+            size="lg"
+            no-caps
+            :label="`To '${route.fullPath} - routerLink slot: isActive=${isActive}, isExactActive=${isExactActive}, href=${href}`"
+            :to="href"
+            @click="onClick"
+          />
+        </router-link>
+        <router-link
+          to="/components/button-functional?q=1&a=2"
+          v-slot="{ href, route, navigate, isActive, isExactActive }"
+        >
+          <q-btn
+            :flat="isActive !== true"
+            :outline="isActive === true && isExactActive !== true"
+            color="primary"
+            size="lg"
+            no-caps
+            :label="`To '${route.fullPath} - routerLink slot: isActive=${isActive}, isExactActive=${isExactActive}, href=${href}`"
+            :to="href"
+            @click="onClick"
+          />
+        </router-link>
+        <router-link
+          to="/components/button-functional?q=2"
+          v-slot="{ href, route, navigate, isActive, isExactActive }"
+        >
+          <q-btn
+            :flat="isActive !== true"
+            :outline="isActive === true && isExactActive !== true"
+            color="primary"
+            size="lg"
+            no-caps
+            :label="`To '${route.fullPath} - routerLink slot: isActive=${isActive}, isExactActive=${isExactActive}, href=${href}`"
+            :to="href"
+            @click="onClick"
+          />
+        </router-link>
+
         <q-btn push type="a" size="lg" label="To '/components/button-functional#1' - a" to="/components/button-functional#1" text-color="primary" @click="onClick" />
         <q-btn push type="a" size="lg" label="To '/components/button-functional#2' - a - disable" to="/components/button-functional#2" text-color="primary" @click="onClick" disable />
         <q-btn push type="button" size="lg" label="To '/components/button-functional#3' - button" to="/components/button-functional#3" text-color="primary" @click="onClick" />
@@ -70,6 +146,7 @@
         </div>
         <q-btn fab-mini outline color="negative" icon="undo" type="reset" class="on-right" title="Reset" @click="onClick" />
         <q-btn fab outline color="primary" icon="send" type="submit" class="on-right" title="Submit" @click="onClick" />
+        <q-btn fab outline color="primary" icon="send" type="a" class="on-right" title="Submit" @click="onClick" />
       </form>
 
       <form @submit.prevent="submit" class="shadow-2 q-pa-md q-my-sm row items-center">
@@ -86,6 +163,11 @@
         </div>
         <q-btn outline color="primary" label="Button" class="on-right" @click="onClick" />
       </form>
+
+      <div class="row" style="width: 150px; margin: 50px;">
+        <q-btn color="indigo" class="col-3" icon="search" to="test" />
+        <q-btn color="indigo" class="col-3" icon="search" />
+      </div>
     </div>
   </div>
 </template>

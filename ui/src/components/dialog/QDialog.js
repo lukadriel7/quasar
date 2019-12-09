@@ -7,8 +7,9 @@ import PreventScrollMixin from '../../mixins/prevent-scroll.js'
 
 import { childHasFocus } from '../../utils/dom.js'
 import EscapeKey from '../../utils/escape-key.js'
-import slot from '../../utils/slot.js'
-import { create, stop, stopAndPrevent } from '../../utils/event.js'
+import { slot } from '../../utils/slot.js'
+import { create, stop } from '../../utils/event.js'
+import { cache } from '../../utils/vm.js'
 
 let maximizedModals = 0
 
@@ -133,7 +134,7 @@ export default Vue.extend({
         return
       }
 
-      node = node.querySelector('[autofocus]') || node
+      node = node.querySelector('[autofocus], [data-autofocus]') || node
       node.focus()
     },
 
@@ -191,6 +192,17 @@ export default Vue.extend({
       }
 
       this.__setTimeout(() => {
+        if (this.$q.platform.is.ios === true && document.activeElement) {
+          const { top } = document.activeElement.getBoundingClientRect()
+          if (top < 0) {
+            document.scrollingElement.scrollTop += top - window.innerHeight / 2
+          }
+          document.activeElement.scrollIntoView()
+        }
+
+        // required in order to avoid the "double-tap needed" issue
+        this.$q.platform.is.ios === true && this.__portal.$el.click()
+
         this.$emit('show', evt)
       }, 300)
     },
@@ -293,10 +305,9 @@ export default Vue.extend({
         }, this.useBackdrop === true ? [
           h('div', {
             staticClass: 'q-dialog__backdrop fixed-full',
-            on: {
-              touchmove: stopAndPrevent, // prevent iOS page scroll
+            on: cache(this, 'bkdrop', {
               click: this.__onBackdropClick
-            }
+            })
           })
         ] : null),
 

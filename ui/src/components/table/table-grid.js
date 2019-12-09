@@ -1,4 +1,3 @@
-import QLinearProgress from '../linear-progress/QLinearProgress.js'
 import QCheckbox from '../checkbox/QCheckbox.js'
 import QSeparator from '../separator/QSeparator.js'
 
@@ -21,7 +20,7 @@ export default {
                 props: {
                   value: scope.selected,
                   color: this.color,
-                  dark: this.dark,
+                  dark: this.isDark,
                   dense: true
                 },
                 on: {
@@ -32,24 +31,38 @@ export default {
               })
             ]),
 
-            h(QSeparator, { props: { dark: this.dark } })
+            h(QSeparator, { props: { dark: this.isDark } })
           )
+
+          const data = {
+            staticClass: 'q-table__grid-item-card' + this.cardDefaultClass,
+            class: this.cardClass,
+            style: this.cardStyle
+          }
+
+          if (this.$listeners['row-click'] !== void 0) {
+            data.on = {
+              click: evt => {
+                this.$emit('row-click', evt, scope.row)
+              }
+            }
+          }
 
           return h('div', {
             staticClass: 'q-table__grid-item col-xs-12 col-sm-6 col-md-4 col-lg-3',
-            class: scope.selected === true ? 'q-table__grid-item--selected' : null
+            class: scope.selected === true ? 'q-table__grid-item--selected' : ''
           }, [
-            h('div', {
-              staticClass: 'q-table__grid-item-card' + this.cardDefaultClass,
-              class: this.cardClass,
-              style: this.cardStyle
-            }, child)
+            h('div', data, child)
           ])
         }
 
-      return h('div', { staticClass: 'row' }, this.computedRows.map(row => {
+      return h('div', {
+        staticClass: 'row',
+        class: this.cardContainerClass,
+        style: this.cardContainerStyle
+      }, this.computedRows.map(row => {
         const
-          key = row[this.rowKey],
+          key = this.getRowKey(row),
           selected = this.isRowSelected(key)
 
         return item(this.addBodyRowMeta({
@@ -63,23 +76,15 @@ export default {
     },
 
     getGridHeader (h) {
-      return h('div', { staticClass: 'q-table__middle' }, [
-        this.gridHeader === true
-          ? h('table', { staticClass: 'q-table' }, [
+      const child = this.gridHeader === true
+        ? [
+          h('table', { staticClass: 'q-table' }, [
             this.getTableHeader(h)
           ])
-          : (this.loading === true
-            ? h(QLinearProgress, {
-              staticClass: 'q-table__linear-progress',
-              props: {
-                color: this.color,
-                dark: this.dark,
-                indeterminate: true
-              }
-            })
-            : null
-          )
-      ])
+        ]
+        : (this.loading === true ? this.__getProgress(h) : void 0)
+
+      return h('div', { staticClass: 'q-table__middle' }, child)
     }
   }
 }
