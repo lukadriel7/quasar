@@ -21,6 +21,9 @@ export namespace colors {
   function textToRgb(color: string): colorsRgba;
   function lighten(color: string, percent: number): string;
   function luminosity(color: string | colorsRgba): number;
+  function brightness(color: string | colorsRgba): number;
+  function blend(fgColor: string | colorsRgba, bColor: string | colorsRgba): string;
+  function changeAlpha(color: string, offset: number): string;
   function setBrand(color: string, value: string, element?: Element): void;
   function getBrand(color: string, element?: Element): string | null;
 }

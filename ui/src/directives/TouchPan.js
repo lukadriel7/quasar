@@ -1,6 +1,6 @@
 import { client } from '../plugins/Platform.js'
-import { getModifierDirections, updateModifiers, addEvt, cleanEvt, getTouchTarget } from '../utils/touch.js'
-import { position, leftClick, prevent, stop, stopAndPrevent, preventDraggable } from '../utils/event.js'
+import { getModifierDirections, updateModifiers, addEvt, cleanEvt, getTouchTarget, shouldStart } from '../utils/touch.js'
+import { position, leftClick, prevent, stop, stopAndPrevent, preventDraggable, noop } from '../utils/event.js'
 import { clearSelection } from '../utils/selection.js'
 
 function getChanges (evt, ctx, isFinal) {
@@ -141,16 +141,10 @@ export default {
       modifiers,
       direction: getModifierDirections(modifiers),
 
-      noop () {},
+      noop,
 
       mouseStart (evt) {
-        if (
-          ctx.event === void 0 &&
-          evt.target !== void 0 &&
-          evt.target.draggable !== true &&
-          leftClick(evt) === true &&
-          (evt.qClonedBy === void 0 || evt.qClonedBy.indexOf(ctx.uid) === -1)
-        ) {
+        if (shouldStart(evt, ctx) && leftClick(evt)) {
           addEvt(ctx, 'temp', [
             [ document, 'mousemove', 'move', 'notPassiveCapture' ],
             [ document, 'mouseup', 'end', 'passiveCapture' ]
@@ -161,48 +155,55 @@ export default {
       },
 
       touchStart (evt) {
-        if (
-          ctx.event === void 0 &&
-          evt.target !== void 0 &&
-          evt.target.draggable !== true &&
-          (evt.qClonedBy === void 0 || evt.qClonedBy.indexOf(ctx.uid) === -1)
-        ) {
+        if (shouldStart(evt, ctx)) {
           const target = getTouchTarget(evt.target)
+
           addEvt(ctx, 'temp', [
             [ target, 'touchmove', 'move', 'notPassiveCapture' ],
             [ target, 'touchcancel', 'end', 'passiveCapture' ],
             [ target, 'touchend', 'end', 'passiveCapture' ]
           ])
+
           ctx.start(evt)
         }
       },
 
       start (evt, mouseEvent) {
         client.is.firefox === true && preventDraggable(el, true)
+        ctx.lastEvt = evt
 
         const pos = position(evt)
 
-        // stop propagation so possible upper v-touch-pan don't catch this as well
-        if (
-          (mouseEvent === true && modifiers.mouseAllDir === true) ||
-          (mouseEvent !== true && modifiers.stop === true)
-        ) {
-          const clone = evt.type.indexOf('mouse') > -1
-            ? new MouseEvent(evt.type, evt)
-            : new TouchEvent(evt.type, evt)
+        /*
+         * Stop propagation so possible upper v-touch-pan don't catch this as well;
+         * If we're not the target (based on modifiers), we'll re-emit the event later
+         */
+        if (mouseEvent === true || modifiers.stop === true) {
+          /*
+           * are we directly switching to detected state?
+           * clone event only otherwise
+           */
+          if (
+            ctx.direction.all !== true &&
+            (mouseEvent !== true || ctx.direction.mouseAllDir !== true)
+          ) {
+            const clone = evt.type.indexOf('mouse') > -1
+              ? new MouseEvent(evt.type, evt)
+              : new TouchEvent(evt.type, evt)
 
-          evt.defaultPrevented === true && prevent(clone)
-          evt.cancelBubble === true && stop(clone)
+            evt.defaultPrevented === true && prevent(clone)
+            evt.cancelBubble === true && stop(clone)
 
-          clone.qClonedBy = evt.qClonedBy === void 0
-            ? [ctx.uid]
-            : evt.qClonedBy.concat(ctx.uid)
-          clone.qKeyEvent = evt.qKeyEvent
-          clone.qClickOutside = evt.qClickOutside
+            clone.qClonedBy = evt.qClonedBy === void 0
+              ? [ctx.uid]
+              : evt.qClonedBy.concat(ctx.uid)
+            clone.qKeyEvent = evt.qKeyEvent
+            clone.qClickOutside = evt.qClickOutside
 
-          ctx.initialEvent = {
-            target: evt.target,
-            event: clone
+            ctx.initialEvent = {
+              target: evt.target,
+              event: clone
+            }
           }
 
           stop(evt)
@@ -226,6 +227,8 @@ export default {
           return
         }
 
+        ctx.lastEvt = evt
+
         if (ctx.event.detected === true) {
           ctx.event.isFirst !== true && handleEvent(evt, ctx.event.mouse)
 
@@ -237,11 +240,30 @@ export default {
             }
             else {
               if (ctx.event.isFirst === true) {
+                const hasMouse = ctx.event.mouse === true
+
                 handleEvent(evt, ctx.event.mouse)
+
                 document.documentElement.style.cursor = 'grabbing'
-                ctx.event.mouse === true && document.body.classList.add('no-pointer-events')
+                hasMouse === true && document.body.classList.add('no-pointer-events')
                 document.body.classList.add('non-selectable')
                 clearSelection()
+
+                ctx.styleCleanup = withDelay => {
+                  ctx.styleCleanup = void 0
+
+                  document.documentElement.style.cursor = ''
+                  document.body.classList.remove('non-selectable')
+
+                  if (hasMouse === true) {
+                    const remove = () => {
+                      document.body.classList.remove('no-pointer-events')
+                    }
+
+                    if (withDelay === true) { setTimeout(remove, 50) }
+                    else { remove() }
+                  }
+                }
               }
               ctx.event.lastX = payload.position.left
               ctx.event.lastY = payload.position.top
@@ -253,7 +275,10 @@ export default {
           return
         }
 
-        if (ctx.direction.all === true) {
+        if (
+          ctx.direction.all === true ||
+          (ctx.event.mouse === true && ctx.modifiers.mouseAllDir === true)
+        ) {
           ctx.event.detected = true
           ctx.move(evt)
           return
@@ -266,23 +291,21 @@ export default {
           absX = Math.abs(distX),
           absY = Math.abs(distY)
 
-        if (absX === absY) {
-          return
-        }
-
-        if (
-          (ctx.direction.horizontal === true && absX > absY) ||
-          (ctx.direction.vertical === true && absX < absY) ||
-          (ctx.direction.up === true && absX < absY && distY < 0) ||
-          (ctx.direction.down === true && absX < absY && distY > 0) ||
-          (ctx.direction.left === true && absX > absY && distX < 0) ||
-          (ctx.direction.right === true && absX > absY && distX > 0)
-        ) {
-          ctx.event.detected = true
-          ctx.move(evt)
-        }
-        else if (ctx.event.mouse !== true || modifiers.mouseAllDir !== true || (Date.now() - ctx.event.time) > 200) {
-          ctx.end(evt, true)
+        if (absX !== absY) {
+          if (
+            (ctx.direction.horizontal === true && absX > absY) ||
+            (ctx.direction.vertical === true && absX < absY) ||
+            (ctx.direction.up === true && absX < absY && distY < 0) ||
+            (ctx.direction.down === true && absX < absY && distY > 0) ||
+            (ctx.direction.left === true && absX > absY && distX < 0) ||
+            (ctx.direction.right === true && absX > absY && distX > 0)
+          ) {
+            ctx.event.detected = true
+            ctx.move(evt)
+          }
+          else {
+            ctx.end(evt, true)
+          }
         }
       },
 
@@ -293,30 +316,23 @@ export default {
 
         cleanEvt(ctx, 'temp')
         client.is.firefox === true && preventDraggable(el, false)
+        ctx.styleCleanup !== void 0 && ctx.styleCleanup(true)
 
-        document.documentElement.style.cursor = ''
-        document.body.classList.remove('non-selectable')
-
-        if (ctx.event.detected === true && ctx.event.mouse === true) {
-          setTimeout(() => {
-            document.body.classList.remove('no-pointer-events')
-          }, 50)
+        if (abort === true) {
+          if (ctx.event.detected !== true && ctx.initialEvent !== void 0) {
+            ctx.initialEvent.target.dispatchEvent(ctx.initialEvent.event)
+          }
         }
-
-        if (
-          abort !== true &&
+        else if (
           ctx.event.detected === true &&
           ctx.event.isFirst !== true
         ) {
-          ctx.handler(getChanges(evt, ctx, true).payload)
-        }
-
-        if (abort === true && ctx.event.detected !== true && ctx.initialEvent !== void 0) {
-          ctx.initialEvent.target.dispatchEvent(ctx.initialEvent.event)
+          ctx.handler(getChanges(evt === void 0 ? ctx.lastEvt : evt, ctx, true).payload)
         }
 
         ctx.event = void 0
         ctx.initialEvent = void 0
+        ctx.lastEvt = void 0
       }
     }
 
@@ -337,8 +353,7 @@ export default {
   },
 
   update (el, binding) {
-    const ctx = el.__qtouchpan
-    ctx !== void 0 && updateModifiers(ctx, binding)
+    el.__qtouchpan !== void 0 && updateModifiers(el.__qtouchpan, binding)
   },
 
   unbind (el) {
@@ -349,13 +364,7 @@ export default {
       cleanEvt(ctx, 'temp')
 
       client.is.firefox === true && preventDraggable(el, false)
-
-      document.documentElement.style.cursor = ''
-      document.body.classList.remove('non-selectable')
-
-      if (ctx.event !== void 0 && ctx.event.detected === true && ctx.event.mouse === true) {
-        document.body.classList.remove('no-pointer-events')
-      }
+      ctx.styleCleanup !== void 0 && ctx.styleCleanup()
 
       delete el[el.__qtouchpan_old ? '__qtouchpan_old' : '__qtouchpan']
     }

@@ -150,6 +150,7 @@ export default Vue.extend({
     content.push(
       h('div', {
         ref: 'content',
+        key: 'content',
         staticClass: 'q-slide-item__content',
         directives: left === true || right === true || up === true || down === true ? [{
           name: 'touch-pan',
@@ -161,8 +162,7 @@ export default Vue.extend({
             down,
             prevent: true,
             stop: true,
-            mouse: true,
-            mouseAllDir: true
+            mouse: true
           }
         }] : null
       }, slot(this, 'default'))

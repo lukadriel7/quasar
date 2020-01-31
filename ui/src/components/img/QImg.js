@@ -1,11 +1,14 @@
 import Vue from 'vue'
 
 import QSpinner from '../spinner/QSpinner.js'
+import RatioMixin from '../../mixins/ratio.js'
 
 import { slot } from '../../utils/slot.js'
 
 export default Vue.extend({
   name: 'QImg',
+
+  mixins: [ RatioMixin ],
 
   props: {
     src: String,
@@ -21,13 +24,16 @@ export default Vue.extend({
       type: String,
       default: '50% 50%'
     },
-    ratio: [String, Number],
+
     transition: {
       type: String,
       default: 'fade'
     },
 
     imgClass: [ Array, String, Object ],
+    imgStyle: Object,
+
+    nativeContextMenu: Boolean,
 
     noDefaultSpinner: Boolean,
     spinnerColor: String,
@@ -55,16 +61,6 @@ export default Vue.extend({
   },
 
   computed: {
-    aspectRatio () {
-      return this.ratio || this.naturalRatio
-    },
-
-    padding () {
-      return this.aspectRatio !== void 0
-        ? (1 / this.aspectRatio) * 100 + '%'
-        : void 0
-    },
-
     url () {
       return this.currentSrc || this.placeholderSrc || void 0
     },
@@ -75,6 +71,16 @@ export default Vue.extend({
         att['aria-label'] = this.alt
       }
       return att
+    },
+
+    style () {
+      return Object.assign(
+        {
+          backgroundSize: this.contain ? 'contain' : 'cover',
+          backgroundPosition: this.position
+        },
+        this.imgStyle,
+        { backgroundImage: `url("${this.url}")` })
     }
   },
 
@@ -196,16 +202,25 @@ export default Vue.extend({
     },
 
     __getImage (h) {
-      const content = this.url !== void 0 ? h('div', {
-        key: this.url,
-        staticClass: 'q-img__image absolute-full',
-        class: this.imgClass,
-        style: {
-          backgroundImage: `url("${this.url}")`,
-          backgroundSize: this.contain ? 'contain' : 'cover',
-          backgroundPosition: this.position
-        }
-      }) : null
+      const nativeImg = this.nativeContextMenu === true
+        ? [
+          h('img', {
+            staticClass: 'absolute-full fit',
+            attrs: {
+              src: this.url
+            }
+          })
+        ]
+        : void 0
+
+      const content = this.url !== void 0
+        ? h('div', {
+          key: this.url,
+          staticClass: 'q-img__image absolute-full',
+          class: this.imgClass,
+          style: this.style
+        }, nativeImg)
+        : null
 
       return this.basic === true
         ? content
@@ -230,16 +245,17 @@ export default Vue.extend({
           staticClass: 'q-img__loading absolute-full flex flex-center'
         }, this.$scopedSlots.loading !== void 0
           ? this.$scopedSlots.loading()
-          : (this.noDefaultSpinner === false
-            ? [
-              h(QSpinner, {
-                props: {
-                  color: this.spinnerColor,
-                  size: this.spinnerSize
-                }
-              })
-            ]
-            : null
+          : (
+            this.noDefaultSpinner === false
+              ? [
+                h(QSpinner, {
+                  props: {
+                    color: this.spinnerColor,
+                    size: this.spinnerSize
+                  }
+                })
+              ]
+              : void 0
           )
         )
         : h('div', {
@@ -255,12 +271,12 @@ export default Vue.extend({
 
   render (h) {
     return h('div', {
-      staticClass: 'q-img overflow-hidden',
+      staticClass: 'q-img overflow-hidden' + (this.nativeContextMenu === true ? ' q-img--menu' : ''),
       attrs: this.attrs,
       on: this.$listeners
     }, [
       h('div', {
-        style: { paddingBottom: this.padding }
+        style: this.ratioStyle
       }),
       this.__getImage(h),
       this.__getContent(h)
