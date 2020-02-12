@@ -5,9 +5,13 @@
     "docsUrl": "https://v1.quasar.dev/vue-components/no-ssr"
   },
 
+  "behavior": {
+    "$listeners": true
+  },
+
   "props": {
     "tag": {
-      "examples": [ "span", "blockquote" ]
+      "examples": [ "div", "span", "blockquote" ]
     },
 
     "placeholder": {

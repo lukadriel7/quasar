@@ -129,3 +129,34 @@ export default {
     }
   }
 }
+
+export const FileValueMixin = {
+  computed: {
+    formDomProps () {
+      if (this.type === 'file' && this.value !== void 0 && this.value !== null) {
+        try {
+          const dt = 'DataTransfer' in window
+            ? new DataTransfer()
+            : ('ClipboardEvent' in window
+              ? new ClipboardEvent('').clipboardData
+              : void 0
+            )
+
+          if (dt !== void 0) {
+            ('length' in this.value
+              ? Array.prototype.slice.call(this.value)
+              : [ this.value ]
+            ).forEach(file => {
+              dt.items.add(file)
+            })
+
+            return {
+              files: dt.files
+            }
+          }
+        }
+        catch (e) { }
+      }
+    }
+  }
+}

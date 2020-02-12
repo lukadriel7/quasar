@@ -393,6 +393,25 @@ export default Vue.extend({
   },
 
   render (h) {
+    const children = [
+      h('div', {
+        staticClass: 'q-uploader__header',
+        class: this.colorClass
+      }, this.__getHeader(h)),
+
+      h('div', {
+        staticClass: 'q-uploader__list scroll'
+      }, this.__getList(h)),
+
+      this.__getDnd(h, 'uploader')
+    ]
+
+    this.isBusy === true && children.push(
+      h('div', {
+        staticClass: 'q-uploader__overlay absolute-full flex flex-center'
+      }, [ h(QSpinner) ])
+    )
+
     return h('div', {
       staticClass: 'q-uploader column no-wrap',
       class: {
@@ -405,23 +424,6 @@ export default Vue.extend({
       on: this.canAddFiles === true
         ? cache(this, 'drag', { dragover: this.__onDragOver })
         : null
-    }, [
-      h('div', {
-        staticClass: 'q-uploader__header',
-        class: this.colorClass
-      }, this.__getHeader(h)),
-
-      h('div', {
-        staticClass: 'q-uploader__list scroll'
-      }, this.__getList(h)),
-
-      this.__getDnd(h, 'uploader'),
-
-      this.isBusy === true ? h('div', {
-        staticClass: 'q-uploader__overlay absolute-full flex flex-center'
-      }, [
-        h(QSpinner)
-      ]) : null
-    ])
+    }, children)
   }
 })

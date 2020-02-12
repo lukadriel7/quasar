@@ -73,7 +73,7 @@ columns: [ // array of Objects
     style: 'width: 500px',
     classes: 'my-special-class'
 
-    // (v1.3.0+) header th:
+    // (v1.3+) header th:
     headerStyle: 'width: 500px',
     headerClasses: 'my-special-class'
   },
@@ -126,9 +126,7 @@ Sticky headers and columns are achieved through CSS with `position: sticky`. Thi
 
 <doc-example title="No header/footer" file="QTable/NoHeaderFooter" />
 
-### Virtual scrolling
-
-<q-badge label="v1.2+" />
+### Virtual scrolling <q-badge align="top" label="v1.2+" />
 
 Notice that when enabling virtual scroll you will need to specify the `table-style` (with a max-height) prop. In the example below, we are also forcing QTable to display all rows at once (note the use of `pagination` and `rows-per-page-options` props).
 
@@ -163,6 +161,8 @@ The property `row-key` must be set in order for selection to work properly.
 <doc-example title="Multiple selection" file="QTable/MultipleSelection" />
 
 ### Visible columns, custom top, fullscreen
+
+Please note that columns marked as `required` (in the column definition) cannot be toggled and are always visible.
 
 <doc-example title="Visible columns, custom top and fullscreen" file="QTable/VisibleColumns" />
 

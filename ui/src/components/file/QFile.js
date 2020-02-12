@@ -3,7 +3,8 @@ import Vue from 'vue'
 import QField from '../field/QField.js'
 import QChip from '../chip/QChip.js'
 
-import FileMixin from '../../mixins/file.js'
+import { FormFieldMixin } from '../../mixins/form.js'
+import FileMixin, { FileValueMixin } from '../../mixins/file.js'
 
 import { isSSR } from '../../plugins/Platform'
 import { humanStorageSize } from '../../utils/format.js'
@@ -12,7 +13,7 @@ import { cache } from '../../utils/vm.js'
 export default Vue.extend({
   name: 'QFile',
 
-  mixins: [ QField, FileMixin ],
+  mixins: [ QField, FileMixin, FormFieldMixin, FileValueMixin ],
 
   props: {
     /* SSR does not know about File & FileList */
@@ -25,7 +26,7 @@ export default Vue.extend({
     maxFiles: [ Number, String ],
 
     tabindex: {
-      type: [String, Number],
+      type: [ String, Number ],
       default: 0
     },
 
@@ -38,37 +39,6 @@ export default Vue.extend({
   data () {
     return {
       dnd: false
-    }
-  },
-
-  watch: {
-    value (val) {
-      if (this.$refs.input === void 0) {
-        return
-      }
-
-      try {
-        if (val === void 0 || val === null) {
-          this.$refs.input.value = ''
-          return
-        }
-
-        const dt = 'DataTransfer' in window
-          ? new DataTransfer()
-          : ('ClipboardEvent' in window
-            ? new ClipboardEvent('').clipboardData
-            : void 0
-          )
-
-        if (dt !== void 0) {
-          (Array.isArray(val) === true ? val : [val]).forEach(file => {
-            dt.items.add(file)
-          })
-
-          this.$refs.input.files = dt.files
-        }
-      }
-      catch (e) { }
     }
   },
 
@@ -218,14 +188,16 @@ export default Vue.extend({
         ref: 'input',
         staticClass: 'q-field__input fit absolute-full cursor-pointer',
         attrs: {
-          id: this.targetUid,
           tabindex: -1,
           type: 'file',
           title: '', // try to remove default tooltip,
           accept: this.accept,
+          name: this.nameProp,
           ...this.$attrs,
+          id: this.targetUid,
           disabled: this.editable !== true
         },
+        domProps: this.formDomProps,
         on: cache(this, 'input', {
           change: this.__addFiles
         })
