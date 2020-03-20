@@ -134,9 +134,7 @@ export default Vue.extend({
         this.abort()
         this.uploadedSize = 0
         this.uploadSize = 0
-        this.files.forEach(f => {
-          f._img !== void 0 && window.URL.revokeObjectURL(f._img.src)
-        })
+        this.__revokeImgURLs()
         this.files = []
         this.queuedFiles = []
         this.uploadedFiles = []
@@ -209,6 +207,12 @@ export default Vue.extend({
       this.$emit('removed', [ file ])
     },
 
+    __revokeImgURLs () {
+      this.files.forEach(f => {
+        f._img !== void 0 && window.URL.revokeObjectURL(f._img.src)
+      })
+    },
+
     __getFileInput () {
       return this.$refs.input ||
         this.$el.getElementsByClassName('q-uploader__input')[0]
@@ -247,6 +251,8 @@ export default Vue.extend({
 
     __addFiles (e, fileList) {
       const files = this.__processFiles(e, fileList)
+        .filter(file => this.files.findIndex(f => file.name === f.name) === -1)
+
       this.__getFileInput().value = ''
 
       if (files === void 0) { return }
@@ -401,6 +407,7 @@ export default Vue.extend({
 
   beforeDestroy () {
     this.isUploading === true && this.abort()
+    this.files.length > 0 && this.__revokeImgURLs()
   },
 
   render (h) {
