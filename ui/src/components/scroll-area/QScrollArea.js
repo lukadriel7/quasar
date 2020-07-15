@@ -3,7 +3,7 @@ import Vue from 'vue'
 import { between } from '../../utils/format.js'
 import { setScrollPosition, setHorizontalScrollPosition } from '../../utils/scroll.js'
 import { mergeSlot } from '../../utils/slot.js'
-import { cache } from '../../utils/vm.js'
+import cache from '../../utils/cache.js'
 import debounce from '../../utils/debounce.js'
 
 import QResizeObserver from '../resize-observer/QResizeObserver.js'
@@ -272,6 +272,7 @@ export default Vue.extend({
         staticClass: 'q-scrollarea__bar',
         style: this.barStyle,
         class: this.barClass,
+        attrs: { 'aria-hidden': 'true' },
         on: cache(this, 'bar', {
           mousedown: this.__mouseDown
         })
@@ -282,6 +283,7 @@ export default Vue.extend({
         staticClass: 'q-scrollarea__thumb',
         style: this.style,
         class: this.thumbClass,
+        attrs: { 'aria-hidden': 'true' },
         directives: cache(this, 'thumb#' + this.horizontal, [{
           name: 'touch-pan',
           modifiers: {

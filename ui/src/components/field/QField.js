@@ -1,14 +1,17 @@
 import Vue from 'vue'
 
+import { fromSSR } from '../../plugins/Platform.js'
+
 import QIcon from '../icon/QIcon.js'
 import QSpinner from '../spinner/QSpinner.js'
 
 import ValidateMixin from '../../mixins/validate.js'
 import DarkMixin from '../../mixins/dark.js'
+import AttrsMixin from '../../mixins/attrs.js'
+
 import { slot } from '../../utils/slot.js'
 import uid from '../../utils/uid.js'
 import { stop, prevent, stopAndPrevent } from '../../utils/event.js'
-import { fromSSR } from '../../plugins/Platform.js'
 
 function getTargetUid (val) {
   return val === void 0 ? `f_${uid()}` : val
@@ -17,7 +20,7 @@ function getTargetUid (val) {
 export default Vue.extend({
   name: 'QField',
 
-  mixins: [ DarkMixin, ValidateMixin ],
+  mixins: [ DarkMixin, ValidateMixin, AttrsMixin ],
 
   inheritAttrs: false,
 
@@ -41,6 +44,8 @@ export default Vue.extend({
     square: Boolean,
 
     loading: Boolean,
+
+    labelSlot: Boolean,
 
     bottomSlots: Boolean,
     hideBottomSpace: Boolean,
@@ -144,7 +149,7 @@ export default Vue.extend({
 
         'q-field--focused': this.focused === true || this.hasError === true,
         'q-field--float': this.floatingLabel,
-        'q-field--labeled': this.label !== void 0,
+        'q-field--labeled': this.hasLabel,
 
         'q-field--dense': this.dense,
         'q-field--item-aligned q-item-type': this.itemAligned,
@@ -186,6 +191,10 @@ export default Vue.extend({
       }
 
       return cls
+    },
+
+    hasLabel () {
+      return this.labelSlot === true || this.label !== void 0
     },
 
     labelClass () {
@@ -347,18 +356,18 @@ export default Vue.extend({
             ref: 'target',
             staticClass: 'q-field__native row',
             attrs: {
-              ...this.$attrs,
+              ...this.qAttrs,
               'data-autofocus': this.autofocus
             }
           }, this.$scopedSlots.control(this.controlSlotScope))
         )
       }
 
-      this.label !== void 0 && node.push(
+      this.hasLabel && node.push(
         h('div', {
           staticClass: 'q-field__label no-pointer-events absolute ellipsis',
           class: this.labelClass
-        }, [ this.label ])
+        }, [ slot(this, 'label', this.label) ])
       )
 
       this.suffix !== void 0 && this.suffix !== null && node.push(
@@ -479,19 +488,18 @@ export default Vue.extend({
     },
 
     __clearValue (e) {
-      this.focused = false
-
       // prevent activating the field but keep focus on desktop
       stopAndPrevent(e)
-      this.$el.focus()
+      const el = this.$refs.target || this.$el
+      el.focus()
 
       if (this.type === 'file') {
         // do not let focus be triggered
         // as it will make the native file dialog
         // appear for another selection
-        prevent(e)
         this.$refs.input.value = null
       }
+
       this.$emit('input', null)
       this.$emit('clear', this.value)
     },
@@ -506,7 +514,7 @@ export default Vue.extend({
     this.__onPostRender !== void 0 && this.$nextTick(this.__onPostRender)
 
     return h('label', {
-      staticClass: 'q-field row no-wrap items-start',
+      staticClass: 'q-field q-validation-component row no-wrap items-start',
       class: this.classes,
       attrs: this.attrs
     }, [

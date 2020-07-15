@@ -22,17 +22,18 @@ export default {
         bodyCell = this.$scopedSlots['body-cell'],
         key = this.getRowKey(row),
         selected = this.isRowSelected(key),
-        child = bodyCell
-          ? this.computedCols.map(col => bodyCell(this.addBodyCellMetaData({ row, pageIndex, col })))
-          : this.computedCols.map(col => {
-            const slot = this.$scopedSlots[`body-cell-${col.name}`]
-            return slot !== void 0
-              ? slot(this.addBodyCellMetaData({ row, pageIndex, col }))
-              : h('td', {
-                class: col.__tdClass,
-                style: col.__tdStyle
-              }, this.getCellValue(col, row))
-          })
+        child = this.computedCols.map(col => {
+          const
+            bodyCellCol = this.$scopedSlots[`body-cell-${col.name}`],
+            slot = bodyCellCol !== void 0 ? bodyCellCol : bodyCell
+
+          return slot !== void 0
+            ? slot(this.addBodyCellMetaData({ row, pageIndex, col }))
+            : h('td', {
+              class: col.__tdClass,
+              style: col.style
+            }, this.getCellValue(col, row))
+        })
 
       this.hasSelectionMode === true && child.unshift(
         h('td', { staticClass: 'q-table--col-auto-width' }, [
@@ -44,8 +45,8 @@ export default {
               dense: this.dense
             },
             on: {
-              input: adding => {
-                this.__updateSelection([ key ], [ row ], adding)
+              input: (adding, evt) => {
+                this.__updateSelection([ key ], [ row ], adding, evt)
               }
             }
           })
@@ -54,14 +55,14 @@ export default {
 
       const data = { key, class: { selected }, on: {} }
 
-      if (this.$listeners['row-click'] !== void 0) {
+      if (this.qListeners['row-click'] !== void 0) {
         data.class['cursor-pointer'] = true
         data.on.click = evt => {
           this.$emit('row-click', evt, row)
         }
       }
 
-      if (this.$listeners['row-dblclick'] !== void 0) {
+      if (this.qListeners['row-dblclick'] !== void 0) {
         data.class['cursor-pointer'] = true
         data.on.dblclick = evt => {
           this.$emit('row-dblclick', evt, row)

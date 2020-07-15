@@ -3,15 +3,16 @@ import Vue from 'vue'
 import QBtn from '../btn/QBtn.js'
 import QBtnGroup from '../btn-group/QBtnGroup.js'
 
-import { slot } from '../../utils/slot.js'
-
+import ListenersMixin from '../../mixins/listeners.js'
 import FormMixin from '../../mixins/form.js'
 import RippleMixin from '../../mixins/ripple.js'
+
+import { slot } from '../../utils/slot.js'
 
 export default Vue.extend({
   name: 'QBtnToggle',
 
-  mixins: [ RippleMixin, FormMixin ],
+  mixins: [ ListenersMixin, RippleMixin, FormMixin ],
 
   props: {
     value: {
@@ -73,7 +74,7 @@ export default Vue.extend({
   },
 
   methods: {
-    __set (value, opt) {
+    __set (value, opt, e) {
       if (this.readonly !== true) {
         if (this.value === value) {
           if (this.clearable === true) {
@@ -84,6 +85,8 @@ export default Vue.extend({
         else {
           this.$emit('input', value, opt)
         }
+
+        this.$emit('click', e)
       }
     }
   },
@@ -92,7 +95,12 @@ export default Vue.extend({
     const child = this.options.map((opt, i) => {
       return h(QBtn, {
         key: i,
-        on: { click: () => this.__set(opt.value, opt) },
+        class: opt.class,
+        style: opt.style,
+        on: {
+          ...this.qListeners,
+          click: e => this.__set(opt.value, opt, e)
+        },
         props: {
           disable: this.disable || opt.disable,
           label: opt.label,
@@ -101,8 +109,8 @@ export default Vue.extend({
           textColor: opt.value === this.value ? opt.toggleTextColor || this.toggleTextColor : opt.textColor || this.textColor,
           icon: opt.icon,
           iconRight: opt.iconRight,
-          noCaps: this.noCaps === true || opt.noCaps === true,
-          noWrap: this.noWrap === true || opt.noWrap === true,
+          noCaps: opt.noCaps === void 0 ? this.noCaps : opt.noCaps === true,
+          noWrap: opt.noWrap === void 0 ? this.noWrap : opt.noWrap === true,
           outline: this.outline,
           flat: this.flat,
           rounded: this.rounded,
@@ -110,10 +118,10 @@ export default Vue.extend({
           unelevated: this.unelevated,
           size: this.size,
           dense: this.dense,
-          ripple: this.ripple !== void 0 ? this.ripple : opt.ripple,
-          stack: this.stack === true || opt.stack === true,
+          ripple: opt.ripple === void 0 ? this.ripple : opt.ripple,
+          stack: opt.stack === void 0 ? this.stack : opt.stack === true,
           tabindex: opt.tabindex,
-          stretch: this.stretch
+          stretch: opt.stretch === void 0 ? this.stretch : opt.stretch === true
         }
       }, opt.slot !== void 0 ? slot(this, opt.slot) : void 0)
     })
@@ -133,8 +141,7 @@ export default Vue.extend({
         unelevated: this.unelevated,
         glossy: this.glossy,
         spread: this.spread
-      },
-      on: this.$listeners
+      }
     }, child)
   }
 })

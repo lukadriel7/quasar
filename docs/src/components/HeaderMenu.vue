@@ -64,7 +64,7 @@ div
           q-icon(:name="mdiInvertColors")
         q-item-section Dark Mode
 
-      q-item(clickable, tag="a", href="/layout-builder", target="_blank")
+      q-item(clickable, tag="a", href="layout-builder", target="_blank")
         q-item-section.text-primary(avatar)
           q-icon(:name="mdiViewDashboard")
         q-item-section Layout Builder
@@ -159,7 +159,7 @@ import {
   mdiViewDashboard, mdiShoppingMusic, mdiClipboardText,
   mdiBugCheck, mdiFlare, mdiFilePlus, mdiPaletteSwatch,
   mdiInvertColors, mdiCharity, mdiStarCircle
-} from '@quasar/extras/mdi-v4'
+} from '@quasar/extras/mdi-v5'
 
 export default {
   name: 'HeaderMenu',
