@@ -141,7 +141,7 @@ export default Vue.extend({
     },
 
     needsReset () {
-      return ['tableStyle', 'tableClass', 'tableHeaderStyle', 'tableHeaderClass', 'containerClass']
+      return ['tableStyle', 'tableClass', 'tableHeaderStyle', 'tableHeaderClass', '__containerClass']
         .map(p => this[p]).join(';')
     },
 
@@ -218,14 +218,19 @@ export default Vue.extend({
         (this.bordered === true ? ` q-table--bordered` : '')
     },
 
-    containerClass () {
+    __containerClass () {
       return `q-table__container q-table--${this.separator}-separator column no-wrap` +
-        (this.loading === true ? ' q-table--loading' : '') +
         (this.grid === true ? ' q-table--grid' : this.cardDefaultClass) +
         (this.isDark === true ? ` q-table--dark` : '') +
         (this.dense === true ? ` q-table--dense` : '') +
         (this.wrapCells === false ? ` q-table--no-wrap` : '') +
         (this.inFullscreen === true ? ` fullscreen scroll` : '')
+    },
+
+    containerClass () {
+      // do not trigger a refresh of the table when the loading status is changed
+      return this.__containerClass +
+        (this.loading === true ? ' q-table--loading' : '')
     },
 
     virtProps () {
@@ -292,8 +297,30 @@ export default Vue.extend({
 
       const header = this.hideHeader !== true ? this.__getTHead(h) : null
 
-      return this.hasVirtScroll === true
-        ? h(QVirtualScroll, {
+      if (this.hasVirtScroll === true) {
+        const topRow = this.$scopedSlots['top-row']
+        const bottomRow = this.$scopedSlots['bottom-row']
+
+        const virtSlots = {
+          default: this.__getVirtualTBodyTR(h)
+        }
+
+        if (topRow !== void 0) {
+          const topContent = h('tbody', topRow({ cols: this.computedCols }))
+
+          virtSlots.before = header === null
+            ? () => [topContent]
+            : () => [header].concat(topContent)
+        }
+        else if (header !== null) {
+          virtSlots.before = () => header
+        }
+
+        if (bottomRow !== void 0) {
+          virtSlots.after = () => h('tbody', bottomRow({ cols: this.computedCols }))
+        }
+
+        return h(QVirtualScroll, {
           ref: 'virtScroll',
           props: {
             ...this.virtProps,
@@ -306,21 +333,18 @@ export default Vue.extend({
           }),
           class: this.tableClass,
           style: this.tableStyle,
-          scopedSlots: {
-            before: header === null
-              ? void 0
-              : () => header,
-            default: this.__getVirtualTBodyTR(h)
-          }
+          scopedSlots: virtSlots
         })
-        : getTableMiddle(h, {
-          staticClass: 'scroll',
-          class: this.tableClass,
-          style: this.tableStyle
-        }, [
-          header,
-          this.__getTBody(h)
-        ])
+      }
+
+      return getTableMiddle(h, {
+        staticClass: 'scroll',
+        class: this.tableClass,
+        style: this.tableStyle
+      }, [
+        header,
+        this.__getTBody(h)
+      ])
     },
 
     scrollTo (toIndex, edge) {
