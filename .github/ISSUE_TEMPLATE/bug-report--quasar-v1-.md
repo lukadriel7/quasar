@@ -1,11 +1,12 @@
 ---
-name: Bug report
-about: Create a report to help us improve Quasar
+name: Bug report (Quasar v1)
+about: Create a report to help us improve Quasar v1
 title: ''
-labels: bug
+labels: ":beetle: bug, Qv1"
 assignees: ''
 
 ---
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
@@ -26,6 +27,24 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Platform (please complete the following information):**
+Quasar Version:
+@quasar/app Version:
+Quasar mode:
+  [ ] SPA
+  [ ] SSR
+  [ ] PWA
+  [ ] Electron
+  [ ] Cordova
+  [ ] Capacitor
+  [ ] BEX
+Tested on:
+  [ ] SPA
+  [ ] SSR
+  [ ] PWA
+  [ ] Electron
+  [ ] Cordova
+  [ ] Capacitor
+  [ ] BEX
 OS:
 Node:
 NPM:
