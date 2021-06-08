@@ -146,7 +146,7 @@ const cli = [
     path: 'installation'
   },
   {
-    name: 'Upgrade guide (v2)',
+    name: 'Upgrade guide',
     path: 'app-upgrade-guide'
   },
   {
@@ -1214,6 +1214,12 @@ module.exports = [
     name: 'Why Donations Are Important',
     icon: 'assignment_late',
     path: 'why-donate'
+  },
+  {
+    name: 'API Explorer',
+    icon: 'travel_explore',
+    badge: 'new',
+    path: 'api-explorer'
   },
   {
     name: 'Video Tutorials',
